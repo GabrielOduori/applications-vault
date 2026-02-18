@@ -81,7 +81,7 @@ The extension lets you capture job postings with one click from any web page.
 **Load in Firefox:**
 1. Go to `about:debugging#/runtime/this-firefox`
 2. Click **Load Temporary Add-on**
-3. Select `extension/manifest.firefox.json`
+3. Select `applications-vault/extension/dist/firefox.json`
 
 > The extension requires the backend to be running at `http://127.0.0.1:8000`.
 
