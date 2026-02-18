@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+env/
+
+# SQLite
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+application-vault-spec.md
+
+# Vault data (never commit user data)
+ApplicationVault/
+
+# Node
+node_modules/
+.npm
+
+# Frontend build
+frontend/dist/
+
+# Extension build
+extension/dist/
+extension/web-ext-artifacts/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/

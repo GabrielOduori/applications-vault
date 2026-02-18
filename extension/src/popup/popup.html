@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Application Vault</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 360px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+      color: #1f2937;
+      background: #fff;
+    }
+    .header {
+      padding: 16px;
+      background: #2563eb;
+      color: white;
+    }
+    .header h1 { font-size: 16px; font-weight: 600; }
+    .header p { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+
+    .content { padding: 16px; }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+    .status.connected { background: #ecfdf5; color: #065f46; }
+    .status.disconnected { background: #fef2f2; color: #991b1b; }
+    .status.locked { background: #fefce8; color: #854d0e; }
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .status.connected .status-dot { background: #10b981; }
+    .status.disconnected .status-dot { background: #ef4444; }
+    .status.locked .status-dot { background: #eab308; }
+
+    .preview {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .preview-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: #6b7280;
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+    .preview-title {
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 4px;
+      word-wrap: break-word;
+    }
+    .preview-url {
+      font-size: 12px;
+      color: #2563eb;
+      word-break: break-all;
+    }
+    .preview-snippet {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 6px;
+      max-height: 60px;
+      overflow: hidden;
+    }
+
+    .form-group { margin-bottom: 12px; }
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 4px;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 13px;
+      outline: none;
+    }
+    .form-group input:focus { border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37,99,235,0.1); }
+
+    .btn {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-primary { background: #2563eb; color: white; }
+    .btn-primary:hover { background: #1d4ed8; }
+    .btn-primary:disabled { background: #93c5fd; cursor: not-allowed; }
+
+    .btn-unlock { background: #f59e0b; color: white; margin-top: 8px; }
+    .btn-unlock:hover { background: #d97706; }
+
+    .result {
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-top: 12px;
+    }
+    .result.success { background: #ecfdf5; color: #065f46; }
+    .result.error { background: #fef2f2; color: #991b1b; }
+
+    .unlock-form { margin-top: 8px; }
+    .unlock-form input {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .footer {
+      padding: 12px 16px;
+      border-top: 1px solid #e5e7eb;
+      text-align: center;
+    }
+    .footer a {
+      font-size: 12px;
+      color: #2563eb;
+      text-decoration: none;
+    }
+    .footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Application Vault</h1>
+    <p>Capture job postings to your vault</p>
+  </div>
+
+  <div class="content">
+    <!-- Status indicator -->
+    <div id="status" class="status disconnected">
+      <div class="status-dot"></div>
+      <span id="status-text">Checking connection...</span>
+    </div>
+
+    <!-- Unlock form (shown when locked) -->
+    <div id="unlock-section" style="display:none;">
+      <div class="unlock-form">
+        <input type="password" id="passphrase" placeholder="Enter vault passphrase">
+        <button class="btn btn-unlock" id="unlock-btn">Unlock Vault</button>
+      </div>
+    </div>
+
+    <!-- Capture form (shown when unlocked) -->
+    <div id="capture-section" style="display:none;">
+      <div class="preview">
+        <div class="preview-label">Detected on this page</div>
+        <div class="preview-title" id="preview-title">Loading...</div>
+        <div class="preview-url" id="preview-url"></div>
+        <div class="preview-snippet" id="preview-snippet"></div>
+        <div id="deadline-found" style="display:none; margin-top:6px; padding:4px 8px; background:#fef3c7; color:#92400e; border-radius:4px; font-size:11px; font-weight:600;"></div>
+      </div>
+
+      <div class="form-group">
+        <label>Job Title</label>
+        <input type="text" id="job-title" placeholder="e.g. Software Engineer">
+      </div>
+      <div class="form-group">
+        <label>Org / Company</label>
+        <input type="text" id="job-org" placeholder="Organisation or company name">
+      </div>
+      <div class="form-group">
+        <label>Location</label>
+        <input type="text" id="job-location" placeholder="e.g. London, UK or Remote">
+      </div>
+      <div class="form-group">
+        <label>Deadline <span style="color:#ef4444; font-size:11px;">(required)</span></label>
+        <input type="date" id="job-deadline">
+        <div id="deadline-hint" style="display:none; margin-top:3px; font-size:11px; color:#059669; font-weight:500;"></div>
+      </div>
+
+      <button class="btn btn-primary" id="capture-btn">Capture This Job</button>
+
+      <div id="result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <a href="http://localhost:5173" target="_blank">Open Vault Dashboard</a>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
